@@ -12,7 +12,6 @@ from datetime import timedelta
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Pulls directly from your public Google Drive file link
@@ -71,7 +70,7 @@ def label_clusters(rfm_with_clusters, cluster_col="Cluster"):
     return mapping, profile
 
 
-def run_clustering(rfm, k_range=range(2, 6), forced_k=4):
+def run_clustering(rfm, forced_k=4):
     rfm_log = rfm.copy()
     for col in ["Recency", "Frequency", "Monetary"]:
         rfm_log[col] = np.log1p(rfm_log[col].clip(lower=0))
@@ -95,7 +94,7 @@ def build_similarity_matrix(df, top_n_products=1500):
     top_items = df["Description"].value_counts().head(top_n_products).index
     df_filtered = df[df["Description"].isin(top_items)]
 
-    # Use pivot_table with float32 or build group aggregates efficiently
+    # Group aggregates efficiently
     basket = df_filtered.groupby(["CustomerID", "Description"])["Quantity"].sum().unstack(fill_value=0)
     
     # Cast to float32 immediately to reduce matrix sizes by 50%
