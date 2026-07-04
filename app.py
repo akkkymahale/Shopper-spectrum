@@ -21,7 +21,7 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 # If the models folder or files don't exist, run pipeline.py automatically
 if not os.path.exists(MODEL_DIR) or not os.path.exists(os.path.join(MODEL_DIR, "scaler.pkl")):
     with st.spinner("📦 First-time setup: Downloading data from Google Drive and training models. This will take about 1-2 minutes..."):
-        subprocess.run(["python", "pipeline.py"], check=True)
+      subprocess.run(["python", "Pipeline.py"], check=True)
 
 # --------------------------------------------------------------------------
 # Page config & light styling
