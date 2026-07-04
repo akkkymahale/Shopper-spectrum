@@ -1,16 +1,7 @@
 """
-Shopper Spectrum - Data Pipeline
-Cleans the online retail transaction data, engineers RFM features,
-trains a KMeans customer-segmentation model, and builds an item-based
-collaborative-filtering similarity matrix for product recommendations.
-
-Outputs (saved into ./models/):
-    - scaler.pkl            StandardScaler fit on log-transformed RFM
-    - kmeans_model.pkl      Trained KMeans model
-    - cluster_labels.pkl    dict mapping cluster number -> segment label
-    - similarity_matrix.pkl DataFrame of item-item cosine similarity
-    - product_lookup.pkl    dict mapping StockCode -> Description (and reverse)
-    - rfm_table.pkl         Full RFM table (for EDA / reference in app)
+Shopper Spectrum - Data Pipeline (Low-Memory Optimized)
+Cleans data, builds RFM features, trains KMeans, and computes 
+an optimized item similarity matrix for Streamlit Cloud deployment.
 """
 
 import pandas as pd
@@ -24,7 +15,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.metrics.pairwise import cosine_similarity
 
-# UPDATED: Pulls directly from your public Google Drive file link
+# Pulls directly from your public Google Drive file link
 DATA_PATH = "https://drive.google.com/uc?export=download&id=1ecuj3vs7I-7AB5wUq84vftxApmMvvaur"
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 os.makedirs(MODEL_DIR, exist_ok=True)
@@ -43,7 +34,7 @@ def load_and_clean(path=DATA_PATH):
     # Remove negative/zero quantities and prices
     df = df[(df["Quantity"] > 0) & (df["UnitPrice"] > 0)]
 
-    # Drop rows with missing description (can't recommend a nameless product)
+    # Drop rows with missing description
     df = df.dropna(subset=["Description"])
     df["Description"] = df["Description"].str.strip()
 
@@ -67,15 +58,11 @@ def build_rfm(df):
 
 
 def label_clusters(rfm_with_clusters, cluster_col="Cluster"):
-    """Rank clusters by their RFM profile and assign business-friendly labels."""
     profile = rfm_with_clusters.groupby(cluster_col)[["Recency", "Frequency", "Monetary"]].mean()
-
-    # Build a composite score: high F & M and low R = best customers
     score = profile["Frequency"].rank() + profile["Monetary"].rank() - profile["Recency"].rank()
     ordered = score.sort_values(ascending=False).index.tolist()
 
     labels = ["High-Value", "Regular", "Occasional", "At-Risk"]
-    # If there are more/fewer clusters than 4 labels, extend generically
     while len(labels) < len(ordered):
         labels.append(f"Segment-{len(labels)+1}")
     labels = labels[:len(ordered)]
@@ -84,8 +71,7 @@ def label_clusters(rfm_with_clusters, cluster_col="Cluster"):
     return mapping, profile
 
 
-def run_clustering(rfm, k_range=range(2, 9), forced_k=4):
-    """Trains the final model with `forced_k` clusters so the resulting segments line up."""
+def run_clustering(rfm, k_range=range(2, 6), forced_k=4):
     rfm_log = rfm.copy()
     for col in ["Recency", "Frequency", "Monetary"]:
         rfm_log[col] = np.log1p(rfm_log[col].clip(lower=0))
@@ -94,36 +80,27 @@ def run_clustering(rfm, k_range=range(2, 9), forced_k=4):
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    inertias, sil_scores = [], []
-    for k in k_range:
-        km = KMeans(n_clusters=k, random_state=42, n_init=10)
-        preds = km.fit_predict(X_scaled)
-        inertias.append(km.inertia_)
-        sil_scores.append(silhouette_score(X_scaled, preds))
-
-    print("Silhouette scores:", dict(zip(k_range, sil_scores)))
-
-    if forced_k is not None:
-        best_k = forced_k
-    else:
-        best_k = list(k_range)[int(np.argmax(sil_scores))]
-    print("Chosen k:", best_k)
-
-    final_km = KMeans(n_clusters=best_k, random_state=42, n_init=10)
+    final_km = KMeans(n_clusters=forced_k, random_state=42, n_init=10)
     rfm["Cluster"] = final_km.fit_predict(X_scaled)
 
-    return rfm, scaler, final_km, {"k_range": list(k_range), "inertias": inertias, "sil_scores": sil_scores}
+    return rfm, scaler, final_km
 
 
-def build_similarity_matrix(df, min_customers_per_item=1, top_n_products=None):
-    """Item-based collaborative filtering via cosine similarity."""
-    basket = df.groupby(["CustomerID", "Description"])["Quantity"].sum().unstack(fill_value=0)
+def build_similarity_matrix(df, top_n_products=1500):
+    """
+    Optimized for low-memory environments like Streamlit Cloud.
+    Filters down to the top N most frequent items to prevent 1GB RAM crash.
+    """
+    # Find the top products sold most frequently
+    top_items = df["Description"].value_counts().head(top_n_products).index
+    df_filtered = df[df["Description"].isin(top_items)]
 
-    if top_n_products:
-        top_items = df.groupby("Description")["Quantity"].sum().sort_values(ascending=False).head(top_n_products).index
-        basket = basket[top_items]
-
-    item_matrix = basket.T  # items x customers
+    # Use pivot_table with float32 or build group aggregates efficiently
+    basket = df_filtered.groupby(["CustomerID", "Description"])["Quantity"].sum().unstack(fill_value=0)
+    
+    # Cast to float32 immediately to reduce matrix sizes by 50%
+    item_matrix = basket.T.astype(np.float32) 
+    
     sim = cosine_similarity(item_matrix).astype(np.float32)
     sim_df = pd.DataFrame(sim, index=item_matrix.index, columns=item_matrix.index)
     return sim_df
@@ -132,21 +109,17 @@ def build_similarity_matrix(df, min_customers_per_item=1, top_n_products=None):
 def main():
     print("Loading & cleaning data directly from Google Drive...")
     df = load_and_clean()
-    print("Clean shape:", df.shape)
 
     print("Building RFM table...")
     rfm = build_rfm(df)
 
     print("Running clustering...")
-    rfm, scaler, kmeans, elbow_info = run_clustering(rfm)
-
-    cluster_map, profile = label_clusters(rfm)
+    rfm, scaler, kmeans = run_clustering(rfm)
+    cluster_map, _ = label_clusters(rfm)
     rfm["Segment"] = rfm["Cluster"].map(cluster_map)
-    print(profile)
-    print(cluster_map)
 
-    print("Building item similarity matrix (this can take a minute)...")
-    sim_df = build_similarity_matrix(df)
+    print("Building optimized item similarity matrix (Low Memory Mode)...")
+    sim_df = build_similarity_matrix(df, top_n_products=1500)
 
     product_lookup = (
         df[["StockCode", "Description"]]
@@ -168,14 +141,9 @@ def main():
         pickle.dump(product_lookup, f)
     with open(os.path.join(MODEL_DIR, "rfm_table.pkl"), "wb") as f:
         pickle.dump(rfm, f)
-    with open(os.path.join(MODEL_DIR, "elbow_info.pkl"), "wb") as f:
-        pickle.dump(elbow_info, f)
 
-    df.to_csv(os.path.join(MODEL_DIR, "clean_transactions.csv"), index=False)
-
-    print("Done. Artifacts saved to", MODEL_DIR)
+    print("Done! Artifacts saved successfully.")
 
 
 if __name__ == "__main__":
     main()
-    
