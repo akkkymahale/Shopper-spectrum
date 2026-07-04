@@ -1,6 +1,6 @@
 """
 Shopper Spectrum: Customer Segmentation & Product Recommendations
-Streamlit web app customized for Akshay Mahale.
+Streamlit web app - Production Build for Akshay Mahale.
 """
 
 import os
@@ -9,11 +9,11 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-# Direct native import ensures the pipeline shares Streamlit's environment
+# Direct native import for execution environment safety
 import pipeline
 
 # --------------------------------------------------------------------------
-# Page config & Custom Sky Blue / White Theme Injector
+# Page config & Complete Visual Match Stylesheet (Electric Sky-Blue Theme)
 # --------------------------------------------------------------------------
 st.set_page_config(
     page_title="Shopper Spectrum | Akshay Mahale",
@@ -22,85 +22,105 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom Theme Injection via CSS
+# Deep Custom Theme Overrides to Match the Target Interface Exactly
 st.markdown(
     """
     <style>
-    /* Main Content Background - Sky Blue Gradient */
+    /* Absolute Dark Mode Canvas */
     .stApp {
-        background: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%);
-        color: #2F3542 !important;
+        background-color: #0d1117 !important;
+        color: #f0f6fc !important;
     }
     
-    /* Global Text Visibility Rules over Light Background */
-    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown {
-        color: #FFFFFF !important;
+    /* Global Typography Reset to White/Silver */
+    h1, h2, h3, h4, h5, h6, p, label, span, .stMarkdown {
+        color: #f0f6fc !important;
     }
     
-    /* Card Container Overrides (White Surfaces) */
-    div[data-testid="stMetricValue"], div[data-testid="stMetricLabel"] {
-        color: #2F3542 !important;
+    /* Premium Translucent Sidebar Design */
+    section[data-testid="stSidebar"] {
+        background-color: #161b22 !important;
+        border-right: 1px solid #30363d !important;
     }
-    div[data-testid="metric-container"] {
-        background-color: #FFFFFF !important;
-        padding: 1.5rem !important;
-        border-radius: 14px !important;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
-        border: none !important;
+    section[data-testid="stSidebar"] * {
+        color: #c9d1d9 !important;
     }
 
-    /* Custom Module Layout Cards */
+    /* Target Dashboard KPI Cards Match */
+    div[data-testid="metric-container"] {
+        background: rgba(22, 27, 34, 0.7) !important;
+        border: 1px solid #30363d !important;
+        padding: 1.5rem !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+        backdrop-filter: blur(8px);
+    }
+    div[data-testid="stMetricValue"] {
+        color: #58a6ff !important;
+        font-family: monospace;
+        font-weight: bold !important;
+        font-size: 2.2rem !important;
+    }
+    div[data-testid="stMetricLabel"] {
+        color: #8b949e !important;
+        text-transform: uppercase;
+        font-size: 0.85rem !important;
+        letter-spacing: 0.5px;
+    }
+
+    /* Product Recommendation & Output Cards */
     .product-card {
         padding: 1.2rem 1.5rem;
-        border-radius: 12px;
-        background-color: #FFFFFF;
-        border: 1px solid #E3E7ED;
+        border-radius: 10px;
+        background: #161b22;
+        border: 1px solid #30363d;
         margin-bottom: 0.8rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        color: #2F3542 !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
     .product-card strong {
-        color: #0083B0 !important;
+        color: #58a6ff !important;
         font-size: 1.1rem;
     }
     
+    /* Segment Result Overlay Card */
     .segment-card {
         padding: 1.5rem;
-        border-radius: 14px;
+        border-radius: 12px;
         margin-top: 1.5rem;
-        color: white !important;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-    }
-    .segment-card h3, .segment-card p {
-        color: #FFFFFF !important;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
 
+    /* Badges & Accents */
     .rank-badge {
-        background-color: #0083B0;
-        color: white !important;
-        border-radius: 999px;
-        padding: 0.2rem 0.7rem;
+        background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%);
+        color: #ffffff !important;
+        border-radius: 6px;
+        padding: 0.2rem 0.6rem;
         font-size: 0.85rem;
         margin-right: 0.6rem;
         font-weight: bold;
     }
 
-    /* Sidebar Custom Styling */
-    section[data-testid="stSidebar"] {
-        background-color: #FFFFFF !important;
-        box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    /* Custom Developer Profile Badge Widget (Bottom Left Sidebar) */
+    .dev-profile {
+        background: #21262d;
+        border: 1px solid #30363d;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 2rem;
     }
-    section[data-testid="stSidebar"] * {
-        color: #2F3542 !important;
+    .dev-name {
+        color: #58a6ff !important;
+        font-weight: bold;
+        font-size: 1rem;
     }
     
-    /* Input Form Enhancements */
-    div[data-baseweb="input"], div[data-baseweb="number-input"] {
-        background-color: #FFFFFF !important;
-        border-radius: 8px !important;
-    }
-    input {
-        color: #2F3542 !important;
+    /* Clean Input Overrides to stay dark-friendly */
+    input, div[data-baseweb="input"], div[data-baseweb="number-input"] {
+        background-color: #0d1117 !important;
+        color: #f0f6fc !important;
+        border-color: #30363d !important;
     }
     </style>
     """,
@@ -108,10 +128,10 @@ st.markdown(
 )
 
 SEGMENT_COLORS = {
-    "High-Value": "#2ECC71",
-    "Regular": "#3498DB",
-    "Occasional": "#F39C12",
-    "At-Risk": "#E74C3C",
+    "High-Value": "#2ecc71",
+    "Regular": "#3498db",
+    "Occasional": "#f39c12",
+    "At-Risk": "#e74c3c",
 }
 
 SEGMENT_DESCRIPTIONS = {
@@ -122,36 +142,34 @@ SEGMENT_DESCRIPTIONS = {
 }
 
 # --------------------------------------------------------------------------
-# SETUP AND TRAINING MANAGER
+# PIPELINE AUTOMATION SYSTEM
 # --------------------------------------------------------------------------
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 artifacts_exist = os.path.exists(os.path.join(MODEL_DIR, "scaler.pkl"))
 
-# Sidebar Header Branding
+# Navigation Header & Branding
 st.sidebar.title("🛒 Shopper Spectrum")
-st.sidebar.caption("Customer Segmentation & Product Recommendations")
-st.sidebar.markdown("### **Developer:**\n**Akshay Mahale**")
-st.sidebar.markdown("---")
+st.sidebar.caption("Customer Analytics & Recommendations Dashboard")
 
 if not artifacts_exist:
     st.title("📦 First-Time Setup Required")
     st.write("The machine learning models need to be built and trained before the dashboard can load.")
     
     if st.button("🚀 Start Data Download & Model Training", type="primary"):
-        with st.spinner("Downloading dataset from Google Drive and training models natively... This takes about 1-2 minutes."):
+        with st.spinner("Downloading dataset and training models natively..."):
             try:
                 pipeline.main()
-                st.success("Training complete! Click the button below to load the dashboard.")
+                st.success("Training complete! Loading dashboard space...")
                 st.button("🔄 Load Dashboard")
             except Exception as e:
-                st.error("Training failed! Running environment error details:")
+                st.error("Training failed! Environment trace log:")
                 st.exception(e)
     st.stop()
 
 # --------------------------------------------------------------------------
-# Cached loaders
+# Core Data Loading
 # --------------------------------------------------------------------------
 @st.cache_resource(show_spinner=False)
 def load_artifacts():
@@ -193,25 +211,31 @@ def get_recommendations(product_name, sim_df, top_n=5):
     return match, list(top.items())
 
 # --------------------------------------------------------------------------
-# Navigation
+# Navigation Panel
 # --------------------------------------------------------------------------
 page = st.sidebar.radio(
     "Choose a module",
     ["🏠 Overview", "🎯 Product Recommendations", "👥 Customer Segmentation"],
 )
 
-st.sidebar.markdown("---")
+# Custom Personal Branding Component Injection
 st.sidebar.markdown(
-    "**About**\n\nBuilt on transaction-level e-commerce data using "
-    "RFM analysis, KMeans clustering, and item-based collaborative filtering."
+    """
+    <div class="dev-profile">
+        <div style="font-size: 0.8rem; color: #8b949e; text-transform: uppercase;">Developer Profile</div>
+        <div class="dev-name">Akshay Mahale</div>
+        <div style="font-size: 0.8rem; color: #8b949e; margin-top: 4px;">Cloud & DevOps Engineer</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 # --------------------------------------------------------------------------
-# 🏠 Overview Page
+# Module 1: Overview
 # --------------------------------------------------------------------------
 if page == "🏠 Overview":
     st.title("🛒 Shopper Spectrum Dashboard")
-    st.subheader("Customer Segmentation and Product Recommendations in E-Commerce")
+    st.subheader("Customer Analytics Platform")
 
     col1, col2, col3 = st.columns(3)
     col1.metric("Customers analyzed", f"{rfm_table.shape[0]:,}")
@@ -222,74 +246,6 @@ if page == "🏠 Overview":
     seg_counts = rfm_table["Segment"].value_counts()
     st.bar_chart(seg_counts)
 
-    st.markdown("### What this app does")
+    st.markdown("### Architecture Mechanics")
     st.markdown(
         """
-        - **Product Recommendations** — Type a product name and get the 5 most similar
-          products based on customers' co-purchase patterns (cosine similarity).
-        - **Customer Segmentation** — Enter a customer's Recency, Frequency, and Monetary
-          (RFM) values and instantly get their predicted segment.
-        """
-    )
-
-# --------------------------------------------------------------------------
-# 🎯 Recommendations Page
-# --------------------------------------------------------------------------
-elif page == "🎯 Product Recommendations":
-    st.title("🎯 Product Recommendation Module")
-    st.write("Enter a product name below to get the top 5 similar products.")
-
-    product_input = st.text_input("Product Name", placeholder="e.g. WHITE HANGING HEART T-LIGHT HOLDER")
-
-    if st.button("Get Recommendations", type="primary"):
-        if not product_input.strip():
-            st.warning("Please enter a product name.")
-        else:
-            with st.spinner("Finding similar products..."):
-                matched_name, recs = get_recommendations(product_input, sim_df, top_n=5)
-
-            if matched_name is None:
-                st.error(f"No product matching “{product_input}” was found in the filtered catalog.")
-            else:
-                st.success(f"Showing recommendations based on: **{matched_name}**")
-                for i, (name, score) in enumerate(recs, start=1):
-                    st.markdown(
-                        f"""
-                        <div class="product-card">
-                            <span class="rank-badge">#{i}</span>
-                            <strong>{name}</strong>
-                            <br><span style="color:#57606F; font-size:0.9rem;">Similarity score: {score:.3f}</span>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-# --------------------------------------------------------------------------
-# 👥 Segmentation Page
-# --------------------------------------------------------------------------
-elif page == "👥 Customer Segmentation":
-    st.title("👥 Customer Segmentation Module")
-    st.write("Enter a customer's RFM values to predict which segment they belong to.")
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        recency = st.number_input("Recency (days since last purchase)", min_value=0, value=30, step=1)
-    with col2:
-        frequency = st.number_input("Frequency (number of purchases)", min_value=0, value=5, step=1)
-    with col3:
-        monetary = st.number_input("Monetary (total spend, $)", min_value=0.0, value=500.0, step=10.0)
-
-    if st.button("Predict Cluster", type="primary"):
-        segment = predict_segment(recency, frequency, monetary, scaler, kmeans, cluster_map)
-        color = SEGMENT_COLORS.get(segment, "#7F8C8D")
-        desc = SEGMENT_DESCRIPTIONS.get(segment, "")
-
-        st.markdown(
-            f"""
-            <div class="segment-card" style="background-color:{color};">
-                <h3 style="margin:0; font-weight:bold;">Predicted Segment: {segment}</h3>
-                <p style="margin-top:0.5rem; font-size:1.05rem; opacity:0.95;">{desc}</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
