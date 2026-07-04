@@ -9,13 +9,13 @@ import pipeline
 # 1. PAGE SETUP & DEFINITIVE SHOPPERIQ ULTRA-DARK CSS THEME
 # --------------------------------------------------------------------------
 st.set_page_config(
-    page_title="ShopperIQ | Retail Intelligence",
+    page_title="Shopper Spectrum | Retail Intelligence",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Deep obsidian-purple canvas theme matching Screenshot 2026-07-05 at 12.37.29 AM_2.jpg
+# Deep obsidian dark dashboard canvas style mapping
 st.markdown(
     """
     <style>
@@ -39,7 +39,7 @@ st.markdown(
         color: #B3AECE !important;
     }
 
-    /* ShopperIQ High-Gloss Core Feature Cards */
+    /* Shopper Spectrum High-Gloss Core Feature Cards */
     div[data-testid="metric-container"] {
         background: #110E1C !important;
         border: 1px solid #1F1936 !important;
@@ -69,20 +69,10 @@ st.markdown(
         margin-bottom: 1.2rem;
     }
 
-    /* Sidebar Navigation Pill Simulator */
-    .nav-pill-active {
-        background: linear-gradient(90deg, #4F39F4 0%, #7451F7 100%);
-        border-radius: 10px;
-        padding: 0.6rem 1rem;
-        color: #FFFFFF !important;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
     /* Live Stats Sidebar Widget block */
     .live-stats-box {
-        margin-top: 2.5rem;
-        padding: 1rem 0;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
         border-top: 1px solid #1C172E;
     }
     .stat-row {
@@ -112,7 +102,7 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 if not os.path.exists(os.path.join(MODEL_DIR, "scaler.pkl")):
-    st.title("⚡ ShopperIQ Core System Initialization")
+    st.title("⚡ System Initialization")
     st.write("Constructing analytical cluster matrices and compiling local workspace assets...")
     if st.button("Initialize Platform Engines", type="primary"):
         with st.spinner("Downloading source registries and training model layers natively..."):
@@ -132,38 +122,42 @@ def load_workspace_data():
 scaler, kmeans, cluster_map, sim_df, rfm_table = load_workspace_data()
 
 # --------------------------------------------------------------------------
-# 3. SIDEBAR BRANDING & LIVE STATS RUNTIME COMPONENT
+# 3. SIDEBAR BRANDING (SHOPPER SPECTRUM BOLD EXECUTIVE STYLE)
 # --------------------------------------------------------------------------
 st.sidebar.markdown(
     """
-    <div style="padding: 0.5rem 0 1.5rem 0;">
-        <h2 style="margin:0; font-size:1.6rem; font-weight:700; color:#FFFFFF;">⚡ ShopperIQ</h2>
-        <span style="font-size:0.8rem; color:#6C6684;">Retail Intelligence Hub</span>
+    <div style="padding: 0.8rem 0 1.8rem 0;">
+        <h1 style="margin: 0; font-size: 1.65rem; font-weight: 800; letter-spacing: 1.5px; color: #FFFFFF; font-family: 'Helvetica Neue', Arial, sans-serif; text-transform: uppercase;">
+            SHOPPER SPECTRUM
+        </h1>
+        <div style="font-size: 0.8rem; color: #8D87A4; font-weight: 500; margin-top: 6px; letter-spacing: 0.3px;">
+            Data-driven insights for modern retail
+        </div>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-# Primary Module Router Navigation
+# Primary Module Navigation
 page = st.sidebar.radio(
     "E-Commerce Navigation Modules",
     ["📊 Dashboard Overview", "🎯 Product Recommendations", "👥 Customer Segmentation"],
     index=0
 )
 
-# Live Stats Component Widget matching Screenshot 2026-07-05 at 12.37.29 AM_2.jpg
+# Live Stats Component Widget Panel
 st.sidebar.markdown(
     """
     <div class="live-stats-box">
-        <div style="font-size:0.8rem; font-weight:bold; color:#8D87A4; margin-bottom:1rem; letter-spacing:1px;">LIVE STATS</div>
+        <div style="font-size:0.75rem; font-weight:bold; color:#8D87A4; margin-bottom:1rem; letter-spacing:1px;">LIVE PLATFORM METRICS</div>
         <div class="stat-row"><div class="stat-label">Customers</div><div class="stat-val">4,338</div></div>
         <div class="stat-row"><div class="stat-label">Products</div><div class="stat-val">3,877</div></div>
-        <div class="stat-row"><div class="stat-label">Revenue</div><div class="stat-val">8.91M USD</div></div>
+        <div class="stat-row"><div class="stat-label">Revenue Target</div><div class="stat-val">8.91M USD</div></div>
         <div class="stat-row"><div class="stat-label">Countries Verified</div><div class="stat-val">37</div></div>
     </div>
-    <div style="margin-top:2rem; padding: 0.8rem; background:#110E1C; border:1px solid #1F1936; border-radius:10px;">
-        <div style="font-size:0.75rem; color:#6C6684; text-transform:uppercase;">Lead Architecture</div>
-        <div style="font-weight:bold; color:#7451F7; font-size:0.95rem;">Akshay Mahale</div>
+    <div style="margin-top:2.5rem; padding: 0.8rem; background:#110E1C; border:1px solid #1F1936; border-radius:10px;">
+        <div style="font-size:0.75rem; color:#6C6684; text-transform:uppercase; font-weight: bold; letter-spacing: 0.5px;">Lead Architecture</div>
+        <div style="font-weight:bold; color:#7451F7; font-size:0.95rem; margin-top: 2px;">Akshay Mahale</div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -178,9 +172,8 @@ if page == "📊 Dashboard Overview":
     st.markdown(
         """
         <div style="margin-bottom: 2rem;">
-            <span style="background: rgba(116,81,247,0.15); color: #9A82FA; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: bold; border: 1px solid rgba(116,81,247,0.3);">E-Commerce Intelligence</span>
-            <h1 style="margin: 0.5rem 0 0 0; font-size: 2.8rem; font-weight: 700; color: #FFFFFF;">Know Your Customers.<br>Grow Your Revenue.</h1>
-            <p style="color: #8D87A4; font-size: 1.05rem; max-width: 700px; margin-top: 0.5rem;">ShopperIQ leverages state-of-the-art behavioral item filtering and clustering mechanics to segment consumer lifecycles in real time.</p>
+            <h1 style="margin: 0; font-size: 2.5rem; font-weight: 700; color: #FFFFFF;">Retail Intelligence Hub</h1>
+            <p style="color: #8D87A4; font-size: 1.05rem; max-width: 700px; margin-top: 0.4rem;">Translating continuous consumer interaction loops into structured, behavioral analytical matrix environments dynamically.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -192,7 +185,7 @@ if page == "📊 Dashboard Overview":
     c3.metric("Total Revenue", "8.91M")
     c4.metric("Countries", "37")
 
-    st.markdown("### 📈 Real-Time Macro-Segment Distribution")
+    st.markdown("### 📈 Segment Distribution Tracking")
     st.bar_chart(rfm_table["Segment"].value_counts())
 
 # --- MODULE 2: PRODUCT RECOMMENDATIONS ---
@@ -251,3 +244,4 @@ elif page == "👥 Customer Segmentation":
             """,
             unsafe_allow_html=True,
         )
+        
