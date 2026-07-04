@@ -4,18 +4,24 @@ Streamlit web app.
 
 Run locally with:
     streamlit run app.py
-
-Expects the following files inside ./models/ (created by pipeline.py):
-    scaler.pkl, kmeans_model.pkl, cluster_labels.pkl,
-    similarity_matrix.pkl, product_lookup.pkl, rfm_table.pkl
 """
 
 import os
 import pickle
-
+import subprocess
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+# --------------------------------------------------------------------------
+# AUTOMATIC PIPELINE CHECK (Ensures models are built on Streamlit Cloud)
+# --------------------------------------------------------------------------
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
+
+# If the models folder or files don't exist, run pipeline.py automatically
+if not os.path.exists(MODEL_DIR) or not os.path.exists(os.path.join(MODEL_DIR, "scaler.pkl")):
+    with st.spinner("📦 First-time setup: Downloading data from Google Drive and training models. This will take about 1-2 minutes..."):
+        subprocess.run(["python", "pipeline.py"], check=True)
 
 # --------------------------------------------------------------------------
 # Page config & light styling
@@ -70,8 +76,6 @@ SEGMENT_DESCRIPTIONS = {
     "Occasional": "Infrequent, lower-spend shoppers. Consider targeted promotions to increase engagement.",
     "At-Risk": "Haven't purchased in a long time. Prioritize for win-back/retention campaigns.",
 }
-
-MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 
 
 # --------------------------------------------------------------------------
