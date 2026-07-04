@@ -5,10 +5,12 @@ Streamlit web app.
 
 import os
 import pickle
-import subprocess
 import numpy as np
 import pandas as pd
 import streamlit as st
+
+# Direct native import ensures the pipeline shares Streamlit's environment and libraries
+import pipeline
 
 # --------------------------------------------------------------------------
 # Page config & light styling
@@ -80,14 +82,15 @@ if not artifacts_exist:
     st.write("The machine learning models need to be built and trained before the dashboard can load.")
     
     if st.button("🚀 Start Data Download & Model Training", type="primary"):
-        with st.spinner("Downloading dataset from Google Drive and training models... This takes about 1-2 minutes."):
+        with st.spinner("Downloading dataset from Google Drive and training models natively... This takes about 1-2 minutes."):
             try:
-                result = subprocess.run(["python", "pipeline.py"], capture_output=True, text=True, check=True)
+                # Direct runtime execution clears the ModuleNotFoundError completely
+                pipeline.main()
                 st.success("Training complete! Click the button below to load the dashboard.")
                 st.button("🔄 Load Dashboard")
-            except subprocess.CalledProcessError as e:
-                st.error("Training failed! Here is the error log to help us fix it:")
-                st.code(e.stderr if e.stderr else e.stdout)
+            except Exception as e:
+                st.error("Training failed! Running environment error details:")
+                st.exception(e)
     st.stop()
 
 # --------------------------------------------------------------------------
