@@ -24,7 +24,8 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.metrics.pairwise import cosine_similarity
 
-DATA_PATH = "/mnt/user-data/uploads/online_retail.csv"
+# UPDATED: Pulls directly from your public Google Drive file link
+DATA_PATH = "https://drive.google.com/uc?export=download&id=1ecuj3vs7I-7AB5wUq84vftxApmMvvaur"
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 os.makedirs(MODEL_DIR, exist_ok=True)
 
@@ -84,11 +85,7 @@ def label_clusters(rfm_with_clusters, cluster_col="Cluster"):
 
 
 def run_clustering(rfm, k_range=range(2, 9), forced_k=4):
-    """Runs the elbow/silhouette scan across k_range for reporting purposes,
-    but trains the final model with `forced_k` clusters so the resulting
-    segments line up with the four business-defined labels
-    (High-Value / Regular / Occasional / At-Risk) requested in the brief.
-    Set forced_k=None to let silhouette score pick k automatically."""
+    """Trains the final model with `forced_k` clusters so the resulting segments line up."""
     rfm_log = rfm.copy()
     for col in ["Recency", "Frequency", "Monetary"]:
         rfm_log[col] = np.log1p(rfm_log[col].clip(lower=0))
@@ -119,8 +116,7 @@ def run_clustering(rfm, k_range=range(2, 9), forced_k=4):
 
 
 def build_similarity_matrix(df, min_customers_per_item=1, top_n_products=None):
-    """Item-based collaborative filtering via cosine similarity on the
-    CustomerID x Description quantity matrix."""
+    """Item-based collaborative filtering via cosine similarity."""
     basket = df.groupby(["CustomerID", "Description"])["Quantity"].sum().unstack(fill_value=0)
 
     if top_n_products:
@@ -134,7 +130,7 @@ def build_similarity_matrix(df, min_customers_per_item=1, top_n_products=None):
 
 
 def main():
-    print("Loading & cleaning data...")
+    print("Loading & cleaning data directly from Google Drive...")
     df = load_and_clean()
     print("Clean shape:", df.shape)
 
@@ -175,7 +171,6 @@ def main():
     with open(os.path.join(MODEL_DIR, "elbow_info.pkl"), "wb") as f:
         pickle.dump(elbow_info, f)
 
-    # Also save the cleaned transactional data for EDA reference
     df.to_csv(os.path.join(MODEL_DIR, "clean_transactions.csv"), index=False)
 
     print("Done. Artifacts saved to", MODEL_DIR)
@@ -183,3 +178,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
