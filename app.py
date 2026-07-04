@@ -1,9 +1,6 @@
 """
 Shopper Spectrum: Customer Segmentation & Product Recommendations
 Streamlit web app.
-
-Run locally with:
-    streamlit run app.py
 """
 
 import os
@@ -14,14 +11,13 @@ import pandas as pd
 import streamlit as st
 
 # --------------------------------------------------------------------------
-# AUTOMATIC PIPELINE CHECK (Ensures models are built on Streamlit Cloud)
+# AUTOMATIC PIPELINE CHECK
 # --------------------------------------------------------------------------
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 
-# If the models folder or files don't exist, run pipeline.py automatically
 if not os.path.exists(MODEL_DIR) or not os.path.exists(os.path.join(MODEL_DIR, "scaler.pkl")):
     with st.spinner("📦 First-time setup: Downloading data from Google Drive and training models. This will take about 1-2 minutes..."):
-      subprocess.run(["python", "Pipeline.py"], check=True)
+        subprocess.run(["python", "pipeline.py"], check=True)
 
 # --------------------------------------------------------------------------
 # Page config & light styling
@@ -78,9 +74,6 @@ SEGMENT_DESCRIPTIONS = {
 }
 
 
-# --------------------------------------------------------------------------
-# Cached loaders
-# --------------------------------------------------------------------------
 @st.cache_resource(show_spinner=False)
 def load_artifacts():
     with open(os.path.join(MODEL_DIR, "scaler.pkl"), "rb") as f:
@@ -106,9 +99,7 @@ def predict_segment(recency, frequency, monetary, scaler, kmeans, cluster_map):
 
 
 def get_recommendations(product_name, sim_df, top_n=5):
-    """Fuzzy-ish match: exact (case-insensitive) match first, else substring match."""
     all_products = sim_df.index
-
     exact = [p for p in all_products if p.lower() == product_name.lower()]
     if exact:
         match = exact[0]
@@ -123,9 +114,6 @@ def get_recommendations(product_name, sim_df, top_n=5):
     return match, list(top.items())
 
 
-# --------------------------------------------------------------------------
-# Load everything once
-# --------------------------------------------------------------------------
 try:
     scaler, kmeans, cluster_map, sim_df, product_lookup, rfm_table = load_artifacts()
     artifacts_ok = True
@@ -133,10 +121,6 @@ except FileNotFoundError as e:
     artifacts_ok = False
     load_error = str(e)
 
-
-# --------------------------------------------------------------------------
-# Sidebar navigation
-# --------------------------------------------------------------------------
 st.sidebar.title("🛒 Shopper Spectrum")
 st.sidebar.caption("Customer Segmentation & Product Recommendations")
 page = st.sidebar.radio(
@@ -151,17 +135,9 @@ st.sidebar.markdown(
 )
 
 if not artifacts_ok:
-    st.error(
-        "Model artifacts not found in ./models/. Please run `python pipeline.py` "
-        "first to generate scaler.pkl, kmeans_model.pkl, similarity_matrix.pkl, etc.\n\n"
-        f"Details: {load_error}"
-    )
+    st.error(f"Model artifacts not found. Details: {load_error}")
     st.stop()
 
-
-# --------------------------------------------------------------------------
-# Overview page
-# --------------------------------------------------------------------------
 if page == "🏠 Overview":
     st.title("🛒 Shopper Spectrum")
     st.subheader("Customer Segmentation and Product Recommendations in E-Commerce")
@@ -175,30 +151,8 @@ if page == "🏠 Overview":
     seg_counts = rfm_table["Segment"].value_counts()
     st.bar_chart(seg_counts)
 
-    st.markdown("### What this app does")
-    st.markdown(
-        """
-        - **Product Recommendations** — type a product name and get the 5 most similar
-          products based on customers' co-purchase patterns (item-based collaborative
-          filtering with cosine similarity).
-        - **Customer Segmentation** — enter a customer's Recency, Frequency, and Monetary
-          (RFM) values and instantly get their predicted segment: **High-Value**,
-          **Regular**, **Occasional**, or **At-Risk**.
-
-        Use the navigation panel on the left to switch between modules.
-        """
-    )
-
-# --------------------------------------------------------------------------
-# Product Recommendation Module
-# --------------------------------------------------------------------------
 elif page == "🎯 Product Recommendations":
     st.title("🎯 Product Recommendation Module")
-    st.write(
-        "Enter a product name below to get the top 5 similar products, "
-        "based on collaborative filtering over customer purchase history."
-    )
-
     product_input = st.text_input("Product Name", placeholder="e.g. WHITE HANGING HEART T-LIGHT HOLDER")
 
     if st.button("Get Recommendations", type="primary"):
@@ -209,10 +163,7 @@ elif page == "🎯 Product Recommendations":
                 matched_name, recs = get_recommendations(product_input, sim_df, top_n=5)
 
             if matched_name is None:
-                st.error(
-                    f"No product matching “{product_input}” was found in the catalog. "
-                    "Try a shorter or more distinctive keyword."
-                )
+                st.error(f"No product matching “{product_input}” was found.")
             else:
                 st.success(f"Showing recommendations based on: **{matched_name}**")
                 for i, (name, score) in enumerate(recs, start=1):
@@ -227,21 +178,8 @@ elif page == "🎯 Product Recommendations":
                         unsafe_allow_html=True,
                     )
 
-    with st.expander("How does this work?"):
-        st.write(
-            "Each product is represented as a vector of quantities purchased by every "
-            "customer. Cosine similarity between these vectors measures how often two "
-            "products are bought by the same customers — products with a high score are "
-            "frequently purchased together or by similar customer profiles."
-        )
-
-# --------------------------------------------------------------------------
-# Customer Segmentation Module
-# --------------------------------------------------------------------------
 elif page == "👥 Customer Segmentation":
     st.title("👥 Customer Segmentation Module")
-    st.write("Enter a customer's RFM values to predict which segment they belong to.")
-
     col1, col2, col3 = st.columns(3)
     with col1:
         recency = st.number_input("Recency (days since last purchase)", min_value=0, value=30, step=1)
@@ -263,12 +201,4 @@ elif page == "👥 Customer Segmentation":
             </div>
             """,
             unsafe_allow_html=True,
-        )
-
-    with st.expander("How does this work?"):
-        st.write(
-            "Recency, Frequency, and Monetary values are log-transformed and scaled the "
-            "same way as during model training, then fed into a pre-trained KMeans model. "
-            "Each of the 4 clusters was labeled by comparing its average RFM profile "
-            "against known customer-behavior archetypes."
         )
