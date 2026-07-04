@@ -1,6 +1,6 @@
 """
 Shopper Spectrum: Customer Segmentation & Product Recommendations
-Streamlit web app.
+Streamlit web app customized for Akshay Mahale.
 """
 
 import os
@@ -9,43 +9,98 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-# Direct native import ensures the pipeline shares Streamlit's environment and libraries
+# Direct native import ensures the pipeline shares Streamlit's environment
 import pipeline
 
 # --------------------------------------------------------------------------
-# Page config & light styling
+# Page config & Custom Sky Blue / White Theme Injector
 # --------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Shopper Spectrum",
+    page_title="Shopper Spectrum | Akshay Mahale",
     page_icon="🛒",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
+# Custom Theme Injection via CSS
 st.markdown(
     """
     <style>
-    .segment-card {
+    /* Main Content Background - Sky Blue Gradient */
+    .stApp {
+        background: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%);
+        color: #2F3542 !important;
+    }
+    
+    /* Global Text Visibility Rules over Light Background */
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown {
+        color: #FFFFFF !important;
+    }
+    
+    /* Card Container Overrides (White Surfaces) */
+    div[data-testid="stMetricValue"], div[data-testid="stMetricLabel"] {
+        color: #2F3542 !important;
+    }
+    div[data-testid="metric-container"] {
+        background-color: #FFFFFF !important;
+        padding: 1.5rem !important;
+        border-radius: 14px !important;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
+        border: none !important;
+    }
+
+    /* Custom Module Layout Cards */
+    .product-card {
         padding: 1.2rem 1.5rem;
         border-radius: 12px;
-        margin-top: 1rem;
-        color: white;
+        background-color: #FFFFFF;
+        border: 1px solid #E3E7ED;
+        margin-bottom: 0.8rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        color: #2F3542 !important;
+    }
+    .product-card strong {
+        color: #0083B0 !important;
         font-size: 1.1rem;
     }
-    .product-card {
-        padding: 0.9rem 1.1rem;
-        border-radius: 10px;
-        background-color: #f5f7fa;
-        border: 1px solid #e3e7ed;
-        margin-bottom: 0.6rem;
+    
+    .segment-card {
+        padding: 1.5rem;
+        border-radius: 14px;
+        margin-top: 1.5rem;
+        color: white !important;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.2);
     }
+    .segment-card h3, .segment-card p {
+        color: #FFFFFF !important;
+    }
+
     .rank-badge {
-        background-color: #4B7BEC;
-        color: white;
+        background-color: #0083B0;
+        color: white !important;
         border-radius: 999px;
-        padding: 0.1rem 0.6rem;
-        font-size: 0.8rem;
-        margin-right: 0.5rem;
+        padding: 0.2rem 0.7rem;
+        font-size: 0.85rem;
+        margin-right: 0.6rem;
+        font-weight: bold;
+    }
+
+    /* Sidebar Custom Styling */
+    section[data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    }
+    section[data-testid="stSidebar"] * {
+        color: #2F3542 !important;
+    }
+    
+    /* Input Form Enhancements */
+    div[data-baseweb="input"], div[data-baseweb="number-input"] {
+        background-color: #FFFFFF !important;
+        border-radius: 8px !important;
+    }
+    input {
+        color: #2F3542 !important;
     }
     </style>
     """,
@@ -53,10 +108,10 @@ st.markdown(
 )
 
 SEGMENT_COLORS = {
-    "High-Value": "#2ecc71",
-    "Regular": "#3498db",
-    "Occasional": "#f39c12",
-    "At-Risk": "#e74c3c",
+    "High-Value": "#2ECC71",
+    "Regular": "#3498DB",
+    "Occasional": "#F39C12",
+    "At-Risk": "#E74C3C",
 }
 
 SEGMENT_DESCRIPTIONS = {
@@ -74,8 +129,11 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 
 artifacts_exist = os.path.exists(os.path.join(MODEL_DIR, "scaler.pkl"))
 
+# Sidebar Header Branding
 st.sidebar.title("🛒 Shopper Spectrum")
 st.sidebar.caption("Customer Segmentation & Product Recommendations")
+st.sidebar.markdown("### **Developer:**\n**Akshay Mahale**")
+st.sidebar.markdown("---")
 
 if not artifacts_exist:
     st.title("📦 First-Time Setup Required")
@@ -84,7 +142,6 @@ if not artifacts_exist:
     if st.button("🚀 Start Data Download & Model Training", type="primary"):
         with st.spinner("Downloading dataset from Google Drive and training models natively... This takes about 1-2 minutes."):
             try:
-                # Direct runtime execution clears the ModuleNotFoundError completely
                 pipeline.main()
                 st.success("Training complete! Click the button below to load the dashboard.")
                 st.button("🔄 Load Dashboard")
@@ -201,7 +258,7 @@ elif page == "🎯 Product Recommendations":
                         <div class="product-card">
                             <span class="rank-badge">#{i}</span>
                             <strong>{name}</strong>
-                            <br><span style="color:#666;">Similarity score: {score:.3f}</span>
+                            <br><span style="color:#57606F; font-size:0.9rem;">Similarity score: {score:.3f}</span>
                         </div>
                         """,
                         unsafe_allow_html=True,
@@ -224,14 +281,14 @@ elif page == "👥 Customer Segmentation":
 
     if st.button("Predict Cluster", type="primary"):
         segment = predict_segment(recency, frequency, monetary, scaler, kmeans, cluster_map)
-        color = SEGMENT_COLORS.get(segment, "#7f8c8d")
+        color = SEGMENT_COLORS.get(segment, "#7F8C8D")
         desc = SEGMENT_DESCRIPTIONS.get(segment, "")
 
         st.markdown(
             f"""
             <div class="segment-card" style="background-color:{color};">
-                <h3 style="margin:0;">Predicted Segment: {segment}</h3>
-                <p style="margin-top:0.5rem;">{desc}</p>
+                <h3 style="margin:0; font-weight:bold;">Predicted Segment: {segment}</h3>
+                <p style="margin-top:0.5rem; font-size:1.05rem; opacity:0.95;">{desc}</p>
             </div>
             """,
             unsafe_allow_html=True,
