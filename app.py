@@ -33,7 +33,8 @@ st.markdown(
         color: #FFFFFF !important;
     }
 
-    p, span, label, div, .stMarkdown {
+    /* Target main body paragraphs and markdown cleanly without breaking structural buttons */
+    .stApp [data-testid="stMarkdownContainer"] p {
         font-family: 'Inter', sans-serif !important;
         color: #F1EFF7 !important;
     }
@@ -44,10 +45,9 @@ st.markdown(
         border-right: 1px solid #1C172E !important;
     }
     
-    /* Targeted sidebar fix: specifically overrides text elements without breaking native font icons */
-    section[data-testid="stSidebar"] .stMarkdown p,
-    section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] span {
+    /* Fixed Sidebar styling: selectively overrides text targets without breaking native 'keyboard_double' layout icons */
+    section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+    section[data-testid="stSidebar"] .stRadio label {
         color: #B3AECE !important;
         font-family: 'Inter', sans-serif !important;
     }
@@ -91,6 +91,8 @@ st.markdown(
         border-top: 1px solid #1C172E;
     }
     .stat-row {
+        display: flex;
+        justify-content: space-between;
         margin-bottom: 0.8rem;
     }
     .stat-label {
@@ -117,13 +119,6 @@ st.markdown(
         background: #110E1C;
         border: 1px solid #1F1936;
         border-radius: 12px;
-    }
-    .dev-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #7451F7;
     }
     .dev-details {
         display: flex;
@@ -154,17 +149,4 @@ def load_workspace_data():
     with open(os.path.join(MODEL_DIR, "scaler.pkl"), "rb") as f: scaler = pickle.load(f)
     with open(os.path.join(MODEL_DIR, "kmeans_model.pkl"), "rb") as f: kmeans = pickle.load(f)
     with open(os.path.join(MODEL_DIR, "cluster_labels.pkl"), "rb") as f: cluster_map = pickle.load(f)
-    with open(os.path.join(MODEL_DIR, "similarity_matrix.pkl"), "rb") as f: sim_df = pickle.load(f)
-    with open(os.path.join(MODEL_DIR, "rfm_table.pkl"), "rb") as f: rfm_table = pickle.load(f)
-    return scaler, kmeans, cluster_map, sim_df, rfm_table
-
-scaler, kmeans, cluster_map, sim_df, rfm_table = load_workspace_data()
-
-# --------------------------------------------------------------------------
-# 3. SIDEBAR BRANDING (SHOPPER SPECTRUM EXECUTIVE FORMAT)
-# --------------------------------------------------------------------------
-st.sidebar.markdown(
-    """
-    <div style="padding: 0.8rem 0 1.2rem 0;">
-        <h1 style="margin: 0; font-size: 1.55rem; font-weight: 800; letter-spacing: 1.8px; color: #FFFFFF; font-family: 'Montserrat', sans-serif !important; text-transform: uppercase;">
-            SHOPPER SPECTR
+    with open(os.path.join(MODEL_DIR, "similarity_matrix
