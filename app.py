@@ -3,7 +3,6 @@ import pickle
 import numpy as np
 import pandas as pd
 import streamlit as st
-import plotly.express as px
 import pipeline
 
 # --------------------------------------------------------------------------
@@ -174,7 +173,7 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-# Primary Module Navigation Panel - Clear Professional Strings
+# Primary Module Navigation Panel
 page = st.sidebar.radio(
     "E-Commerce Navigation Modules",
     [
@@ -248,41 +247,16 @@ if page == "Dashboard Overview":
     st.write("Slicing order capacity aggregates and interaction frequencies across distribution country origins.")
 
     if "Country" in rfm_table.columns:
-        country_counts = rfm_table["Country"].value_counts().reset_index()
-        country_counts.columns = ["Country", "Orders"]
-        country_counts = country_counts.head(10)
+        country_counts = rfm_table["Country"].value_counts().head(10)
     else:
-        # Fallback dataset matching values
         data_mock = {
-            "Country": ["United Kingdom", "Germany", "France", "EIRE", "Spain", "Netherlands", "Belgium", "Switzerland", "Portugal", "Australia"],
-            "Orders": [3950, 94, 87, 74, 31, 23, 21, 21, 19, 9]
+            "United Kingdom": 3950, "Germany": 94, "France": 87, 
+            "EIRE": 74, "Spain": 31, "Netherlands": 23, 
+            "Belgium": 21, "Switzerland": 21, "Portugal": 19, "Australia": 9
         }
-        country_counts = pd.DataFrame(data_mock)
+        country_counts = pd.Series(data_mock)
         
-    # High-performance clean Plotly bar chart formatted for premium dark themes
-    fig = px.bar(
-        country_counts,
-        x="Country",
-        y="Orders",
-        color="Orders",
-        color_continuous_scale=["#17122B", "#7451F7", "#9E86FF"],
-    )
-    
-    fig.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color="#B3AECE", family="Inter"),
-        margin=dict(l=20, r=20, t=20, b=20),
-        xaxis=dict(showgrid=False, title=dict(text="Country Origin")),
-        yaxis=dict(showgrid=True, gridcolor="#1F1936", title=dict(text="Order Accumulations")),
-        coloraxis_colorbar=dict(
-            title="Orders",
-            thickness=15,
-            titlefont=dict(color="#B3AECE"),
-            tickfont=dict(color="#B3AECE")
-        )
-    )
-    st.plotly_chart(fig, use_container_width=True, key="geographic_insights_plotly_chart")
+    st.bar_chart(country_counts)
 
 # --- MODULE 2: PRODUCT RECOMMENDATIONS ---
 elif page == "Product Recommendations":
@@ -306,7 +280,12 @@ elif page == "Product Recommendations":
                 scores = sim_df[target_key].drop(labels=[target_key], errors="ignore").sort_values(ascending=False).head(top_n)
                 
                 for idx, (prod_name, value) in enumerate(scores.items(), 1):
-                    html_card = f"""<div class="feature-card" style="border-left: 4px solid #7451F7;"><div style="font-weight: 700; color: #FFFFFF; font-size:1.05rem; font-family: 'Inter', sans-serif;">#{idx} {prod_name}</div><div style="color: #8D87A4; font-size: 0.85rem; margin-top: 4px; font-family: 'Inter', sans-serif;">Cosine Proximity Weight Metric: <span style="color:#FFF; font-family:monospace;">{value:.4f}</span></div></div>"""
+                    html_card = f"""
+                    <div class="feature-card" style="border-left: 4px solid #7451F7;">
+                        <div style="font-weight: 700; color: #FFFFFF; font-size:1.05rem; font-family: 'Inter', sans-serif;">#{idx} {prod_name}</div>
+                        <div style="color: #8D87A4; font-size: 0.85rem; margin-top: 4px; font-family: 'Inter', sans-serif;">Cosine Proximity Weight Metric: <span style="color:#FFF; font-family:monospace;">{value:.4f}</span></div>
+                    </div>
+                    """
                     st.markdown(html_card, unsafe_allow_html=True)
 
 # --- MODULE 3: CUSTOMER SEGMENTATION ---
@@ -325,7 +304,12 @@ elif page == "Customer Segmentation":
         cluster_id = kmeans.predict(scaled_features)[0]
         assigned_segment = cluster_map.get(cluster_id, f"Cluster {cluster_id}")
         
-        html_segment = f"""<div class="feature-card" style="background: linear-gradient(135deg, #110E1C 0%, #17122B 100%); border: 1px solid #7451F7;"><h3 style="margin: 0; color: #FFFFFF; font-weight:700; font-family: 'Montserrat', sans-serif !important;">Predicted Customer Class Status: <span style="color:#7451F7;">{assigned_segment}</span></h3><p style="color: #B3AECE; margin-top: 0.5rem; font-size:0.95rem; font-family: 'Inter', sans-serif;">Profile compiled correctly and deployed into standard operations matrix profiles successfully.</p></div>"""
+        html_segment = f"""
+        <div class="feature-card" style="background: linear-gradient(135deg, #110E1C 0%, #17122B 100%); border: 1px solid #7451F7;">
+            <h3 style="margin: 0; color: #FFFFFF; font-weight:700; font-family: 'Montserrat', sans-serif !important;">Predicted Customer Class Status: <span style="color:#7451F7;">{assigned_segment}</span></h3>
+            <p style="color: #B3AECE; margin-top: 0.5rem; font-size:0.95rem; font-family: 'Inter', sans-serif;">Profile compiled correctly and deployed into standard operations matrix profiles successfully.</p>
+        </div>
+        """
         st.markdown(html_segment, unsafe_allow_html=True)
 
 # --- MODULE 4: CSV BATCH RECOMMENDATION & MARKETING ENGINE ---
