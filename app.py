@@ -215,22 +215,15 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-# Custom Vector Profile Badge
+# Direct bypass hosting link using your provided image ID 
+DIRECT_IMAGE_URL = "https://lh3.googleusercontent.com/d/1wGYtf22gb7TGrSl2tJRJFnulwCVSRk3o"
+
+# High-Gloss Custom Profile Badge with perfect circular crop layout masking
 st.sidebar.markdown(
-    """
+    f"""
     <div class="dev-profile-container">
         <div class="dev-avatar-wrapper">
-            <svg width="46" height="46" viewBox="0 0 100 100" style="border-radius: 50%; border: 2px solid #7451F7; background: #1F1936;">
-                <defs>
-                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#9d4edd;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#7451F7;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <circle cx="50" cy="50" r="50" fill="url(#grad)" opacity="0.15" />
-                <path d="M50,15 A18,18 0 1,0 50,51 A18,18 0 1,0 50,15 Z" fill="url(#grad)" />
-                <path d="M15,82 C15,65 30,60 50,60 C70,60 85,65 85,82 C85,85 80,88 50,88 C20,88 15,85 15,82 Z" fill="url(#grad)" />
-            </svg>
+            <img src="{DIRECT_IMAGE_URL}" width="46" height="46" style="border-radius: 50%; object-fit: cover; border: 2px solid #7451F7; background: #1F1936;" alt="Developer Profile">
             <div class="dev-status-indicator"></div>
         </div>
         <div class="dev-details">
@@ -276,108 +269,4 @@ if page == "Dashboard Overview":
     else:
         data_mock = {
             "United Kingdom": 3950, "Germany": 94, "France": 87, 
-            "EIRE": 74, "Spain": 31, "Netherlands": 23, 
-            "Belgium": 21, "Switzerland": 21, "Portugal": 19, "Australia": 9
-        }
-        country_counts = pd.Series(data_mock)
-        
-    st.bar_chart(country_counts)
-
-# --- MODULE 2: PRODUCT RECOMMENDATIONS ---
-elif page == "Product Recommendations":
-    st.markdown("<h1 style='font-weight:800; letter-spacing: -0.5px;'>Deep Product Recommender Matrix</h1>", unsafe_allow_html=True)
-    st.write("Perform search index matching across catalog feature arrays via high-dimensional Cosine Similarity.")
-
-    search_term = st.text_input("Active Catalog Item Term Query", placeholder="e.g. WHITE HANGING HEART T-LIGHT HOLDER", key="product_search_term_input")
-    top_n = st.slider("Select quantity of target recommendations to fetch", min_value=1, max_value=10, value=5, key="product_top_n_slider")
-
-    if st.button("Generate Recommendations", type="primary", key="generate_recommendations_action_btn"):
-        if search_term.strip():
-            all_prods = sim_df.index
-            matches = [p for p in all_prods if search_term.lower() in p.lower()]
-            
-            if not matches:
-                st.error("No active catalog items matched your key phrase input query.")
-            else:
-                target_key = matches[0]
-                st.info(f"Target Selection Vector Context mapped to: **{target_key}**")
-                
-                scores = sim_df[target_key].drop(labels=[target_key], errors="ignore").sort_values(ascending=False).head(top_n)
-                
-                for idx, (prod_name, value) in enumerate(scores.items(), 1):
-                    html_card = f"""
-                    <div class="feature-card" style="border-left: 4px solid #7451F7;">
-                        <div style="font-weight: 700; color: #FFFFFF; font-size:1.05rem; font-family: 'Inter', sans-serif;">#{idx} {prod_name}</div>
-                        <div style="color: #8D87A4; font-size: 0.85rem; margin-top: 4px; font-family: 'Inter', sans-serif;">Cosine Proximity Weight Metric: <span style="color:#FFF; font-family:monospace;">{value:.4f}</span></div>
-                    </div>
-                    """
-                    st.markdown(html_card, unsafe_allow_html=True)
-
-# --- MODULE 3: CUSTOMER SEGMENTATION ---
-elif page == "Customer Segmentation":
-    st.markdown("<h1 style='font-weight:800; letter-spacing: -0.5px;'>Customer Performance Cohorts</h1>", unsafe_allow_html=True)
-    st.write("Pass active interaction arrays to evaluate cluster alignments instantly.")
-
-    col1, col2, col3 = st.columns(3)
-    with col1: rec = st.number_input("Recency Value (Days from Last Interaction)", min_value=0, value=30, key="segmentation_recency_input")
-    with col2: freq = st.number_input("Frequency Value (Accumulated Order Total)", min_value=0, value=5, key="segmentation_frequency_input")
-    with col3: mon = st.number_input("Monetary Value (Gross Order Margin Sum, $)", min_value=0.0, value=500.0, key="segmentation_monetary_input")
-
-    if st.button("Evaluate Metrics Profile", type="primary", key="evaluate_metrics_profile_btn"):
-        X_input = np.array([[np.log1p(max(rec, 0)), np.log1p(max(freq, 0)), np.log1p(max(mon, 0))]])
-        scaled_features = scaler.transform(X_input)
-        cluster_id = kmeans.predict(scaled_features)[0]
-        assigned_segment = cluster_map.get(cluster_id, f"Cluster {cluster_id}")
-        
-        html_segment = f"""
-        <div class="feature-card" style="background: linear-gradient(135deg, #110E1C 0%, #17122B 100%); border: 1px solid #7451F7;">
-            <h3 style="margin: 0; color: #FFFFFF; font-weight:700; font-family: 'Montserrat', sans-serif !important;">Predicted Customer Class Status: <span style="color:#7451F7;">{assigned_segment}</span></h3>
-            <p style="color: #B3AECE; margin-top: 0.5rem; font-size:0.95rem; font-family: 'Inter', sans-serif;">Profile compiled correctly and deployed into standard operations matrix profiles successfully.</p>
-        </div>
-        """
-        st.markdown(html_segment, unsafe_allow_html=True)
-
-# --- MODULE 4: CSV BATCH RECOMMENDATION ---
-elif page == "CSV Batch Engine":
-    st.markdown("<h1 style='font-weight:800; letter-spacing: -0.5px;'>Bulk Operational Marketing Engine</h1>", unsafe_allow_html=True)
-    st.write("Upload a raw batch dataset list file to execute automated segment categorization predictions at enterprise scale.")
-    
-    st.markdown("<h3 style='font-weight:700;'>Expected Input format Template Columns:</h3>", unsafe_allow_html=True)
-    st.code("CustomerID, Recency, Frequency, Monetary")
-    
-    uploaded_file = st.file_uploader("Upload Target Batch CSV File", type=["csv"], key="bulk_batch_csv_uploader")
-    
-    if uploaded_file is not None:
-        try:
-            df_input = pd.read_csv(uploaded_file)
-            
-            required_cols = ["Recency", "Frequency", "Monetary"]
-            if not all(col in df_input.columns for col in required_cols):
-                st.error("Missing critical column keys! Make sure the columns match: Recency, Frequency, and Monetary exactly.")
-            else:
-                with st.spinner("Processing structural batch calculations across data matrices..."):
-                    log_rec = np.log1p(df_input["Recency"].clip(lower=0))
-                    log_freq = np.log1p(df_input["Frequency"].clip(lower=0))
-                    log_mon = np.log1p(df_input["Monetary"].clip(lower=0))
-                    
-                    X_matrix = np.column_stack((log_rec, log_freq, log_mon))
-                    scaled_matrix = scaler.transform(X_matrix)
-                    preds = kmeans.predict(scaled_matrix)
-                    
-                    df_input["Predicted_Cluster_ID"] = preds
-                    df_input["Marketing_Target_Segment"] = df_input["Predicted_Cluster_ID"].map(cluster_map)
-                    
-                    st.success("Batch pipeline calculations evaluated successfully!")
-                    st.dataframe(df_input.head(10))
-                    
-                    csv_data = df_input.to_csv(index=False).encode('utf-8')
-                    
-                    st.download_button(
-                        label="Export Processed Campaign Target List",
-                        data=csv_data,
-                        file_name="shopper_spectrum_batch_targets.csv",
-                        mime="text/csv",
-                        key="download_processed_targets_btn"
-                    )
-        except Exception as e:
-            st.error(f"Runtime extraction error processing dataset file layer: {e}")
+            "EIRE": 74, "Spain": 31, "Netherlands": 23,
