@@ -124,4 +124,34 @@ st.markdown(
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 os.makedirs(MODEL_DIR, exist_ok=True)
 
-if
+if not os.path.exists(os.path.join(MODEL_DIR, "scaler.pkl")):
+    st.title("⚡ System Initialization")
+    st.write("Constructing analytical cluster matrices and compiling local workspace assets...")
+    if st.button("Initialize Platform Engines", type="primary"):
+        with st.spinner("Downloading source registries and training model layers natively..."):
+            pipeline.main()
+            st.rerun()
+    st.stop()
+
+@st.cache_resource(show_spinner=False)
+def load_workspace_data():
+    with open(os.path.join(MODEL_DIR, "scaler.pkl"), "rb") as f: scaler = pickle.load(f)
+    with open(os.path.join(MODEL_DIR, "kmeans_model.pkl"), "rb") as f: kmeans = pickle.load(f)
+    with open(os.path.join(MODEL_DIR, "cluster_labels.pkl"), "rb") as f: cluster_map = pickle.load(f)
+    with open(os.path.join(MODEL_DIR, "similarity_matrix.pkl"), "rb") as f: sim_df = pickle.load(f)
+    with open(os.path.join(MODEL_DIR, "rfm_table.pkl"), "rb") as f: rfm_table = pickle.load(f)
+    return scaler, kmeans, cluster_map, sim_df, rfm_table
+
+scaler, kmeans, cluster_map, sim_df, rfm_table = load_workspace_data()
+
+# --------------------------------------------------------------------------
+# 3. SIDEBAR BRANDING (SHOPPER SPECTRUM EXECUTIVE FORMAT)
+# --------------------------------------------------------------------------
+st.sidebar.markdown(
+    """
+    <div style="padding: 0.8rem 0 1.2rem 0;">
+        <h1 style="margin: 0; font-size: 1.65rem; font-weight: 800; letter-spacing: 1.5px; color: #FFFFFF; font-family: 'Helvetica Neue', Arial, sans-serif; text-transform: uppercase;">
+            SHOPPER SPECTRUM
+        </h1>
+        <div style="font-size: 0.8rem; color: #8D87A4; font-weight: 500; margin-top: 6px; letter-spacing: 0.3px;">
+            Data
