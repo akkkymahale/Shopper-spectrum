@@ -138,10 +138,15 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-# Primary Module Navigation
+# Expanded Navigation Modules with the new batch processing module
 page = st.sidebar.radio(
     "E-Commerce Navigation Modules",
-    ["📊 Dashboard Overview", "🎯 Product Recommendations", "👥 Customer Segmentation"],
+    [
+        "📊 Dashboard Overview", 
+        "🎯 Product Recommendations", 
+        "👥 Customer Segmentation",
+        "📂 CSV Batch Engine"
+    ],
     index=0
 )
 
@@ -195,6 +200,9 @@ elif page == "🎯 Product Recommendations":
 
     search_term = st.text_input("Active Catalog Item Term Query", placeholder="e.g. WHITE HANGING HEART T-LIGHT HOLDER")
     
+    # Enhanced Slider feature for interactive configuration
+    top_n = st.slider("Select quantity of target recommendations to fetch", min_value=1, max_value=10, value=5)
+
     if st.button("Generate Recommendations", type="primary"):
         if search_term.strip():
             all_prods = sim_df.index
@@ -206,7 +214,7 @@ elif page == "🎯 Product Recommendations":
                 target_key = matches[0]
                 st.info(f"Target Selection Vector Context mapped to: **{target_key}**")
                 
-                scores = sim_df[target_key].drop(labels=[target_key], errors="ignore").sort_values(ascending=False).head(5)
+                scores = sim_df[target_key].drop(labels=[target_key], errors="ignore").sort_values(ascending=False).head(top_n)
                 
                 for idx, (prod_name, value) in enumerate(scores.items(), 1):
                     st.markdown(
@@ -244,4 +252,51 @@ elif page == "👥 Customer Segmentation":
             """,
             unsafe_allow_html=True,
         )
-        
+
+# --- NEW MODULE 4: CSV BATCH RECOMMENDATION & MARKETING ENGINE ---
+elif page == "📂 CSV Batch Engine":
+    st.title("📂 Bulk Operational Marketing Engine")
+    st.write("Upload a raw batch dataset list file to execute automated segment categorization predictions at enterprise scale.")
+    
+    # Showcase an explicit demo template structure format so users know exactly what to upload
+    st.markdown("### Expected Input format Template Columns:")
+    st.code("CustomerID, Recency, Frequency, Monetary")
+    
+    uploaded_file = st.file_uploader("Upload Target Batch CSV File", type=["csv"])
+    
+    if uploaded_file is not None:
+        try:
+            df_input = pd.read_csv(uploaded_file)
+            
+            required_cols = ["Recency", "Frequency", "Monetary"]
+            if not all(col in df_input.columns for col in required_cols):
+                st.error("Missing critical column keys! Make sure the columns match: Recency, Frequency, and Monetary exactly.")
+            else:
+                with st.spinner("Processing structural batch calculations across data matrices..."):
+                    # Vectorize operational inputs safely using the trained pipeline transformations
+                    log_rec = np.log1p(df_input["Recency"].clip(lower=0))
+                    log_freq = np.log1p(df_input["Frequency"].clip(lower=0))
+                    log_mon = np.log1p(df_input["Monetary"].clip(lower=0))
+                    
+                    X_matrix = np.column_stack((log_rec, log_freq, log_mon))
+                    scaled_matrix = scaler.transform(X_matrix)
+                    preds = kmeans.predict(scaled_matrix)
+                    
+                    # Map predictions onto clear text markers
+                    df_input["Predicted_Cluster_ID"] = preds
+                    df_input["Marketing_Target_Segment"] = df_input["Predicted_Cluster_ID"].map(cluster_map)
+                    
+                    st.success("Batch pipeline calculations evaluated successfully!")
+                    st.dataframe(df_input.head(10))
+                    
+                    # Convert target data frame to temporary system memory buffer array to allow safe download
+                    csv_data = df_input.to_csv(index=False).encode('utf-8')
+                    
+                    st.download_button(
+                        label="📥 Export Processed Campaign Target List",
+                        data=csv_data,
+                        file_name="shopper_spectrum_batch_targets.csv",
+                        mime="text/csv"
+                    )
+        except Exception as e:
+            st.error(f"Runtime extraction error processing dataset file layer: {e}")
